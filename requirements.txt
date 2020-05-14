@@ -1,0 +1,6 @@
+selenium
+browsermob-proxy
+inquirer
+pandas
+beautifulsoup4
+psutil
