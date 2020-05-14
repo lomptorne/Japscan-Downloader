@@ -13,6 +13,7 @@ from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import TimeoutException
 from browsermobproxy import Server
+from tqdm import tqdm
 
 class japscan_downloader:
 
@@ -162,10 +163,10 @@ class japscan_downloader:
 		network_events = []
 		URLS=self.urls_list 
 		page_nbr =len(self.urls_list) -1
-		
+		path = os.getcwd()
 		# Browsermob binaries location
-		browsermobproxy_location = "./browsermob/browsermob-proxy" 
-
+		browsermobproxy_location = "{}/browsermob/browsermob-proxy".format(path) 
+		
 		# Start browsermob server
 		print("Proxy init...")
 		server = Server(browsermobproxy_location)
@@ -175,7 +176,7 @@ class japscan_downloader:
 		time.sleep(1)
 		
 		# Set option for the webdriver, automation detection from japscan, certificate, and headless 
-		chrome_path = "./chromedriver"
+		chrome_path = "{}/chromedriver".format(path)
 		chrome_options = webdriver.ChromeOptions()
 		chrome_options.add_experimental_option("useAutomationExtension", False)
 		chrome_options.add_experimental_option("excludeSwitches",["enable-automation"])
@@ -191,7 +192,8 @@ class japscan_downloader:
 
 		# Do a while loop in case of timeout it happen sometimes 
 		while True:
-			
+
+			print("Fetch :")
 			try:
 				# Initiate the driver with low consumption website
 				driver.set_page_load_timeout(30)
@@ -200,12 +202,11 @@ class japscan_downloader:
 				# if the page number is even scrap only even page, since we can scrap the current page and the next page it's shorter
 				if page_nbr % 2 == 0 :
 
-					for URL in URLS[::2] :
+					for URL in tqdm(URLS[::2]) :
 						network_events = []
 						proxy.new_har("urls")
-						print("Fetching...")
 						driver.get(URL)
-						time.sleep(3)
+						time.sleep(1)
 						
 						# Get the page logs
 						entries = proxy.har['log']["entries"]
@@ -225,12 +226,11 @@ class japscan_downloader:
 				# Same operation if page number is odd 
 				if page_nbr % 2 != 0 :
 
-						for URL in URLS[1::2] :
+						for URL in tqdm(URLS[1::2]) :
 							network_events = []
 							proxy.new_har("urls")
-							print("Fetching...")
 							driver.get(URL)
-							time.sleep(3)
+							time.sleep(1)
 
 							entries = proxy.har['log']["entries"]
 							for entry in entries:
@@ -264,22 +264,23 @@ class japscan_downloader:
 		URLS = self.urls_down
 		path = os.getcwd()
 		count = 0
+		dir_name = path + "/Mangas/" + self.manga_name + "/" + self.chapter_name
 
 		# Create the folder 
-		if not os.path.exists("/{}/{}".format(self.manga_name, self.chapter_name)):
+		if not os.path.exists(dir_name):
 			
 			try :
-				os.makedirs(os.path.join(self.manga_name, self.chapter_name))
-				os.chdir(os.path.join(self.manga_name, self.chapter_name))
+				os.makedirs(dir_name)
+				os.chdir(dir_name)
 			except :
 				print("Folder already exist")
-				os.chdir(os.path.join(self.manga_name, self.chapter_name))
-		
+				os.chdir(dir_name)
+		print("Download :")
+
 		# Downloading all the fetched urls 		
-		for URL in URLS :
+		for URL in tqdm(URLS) :
 			
 			count += 1
-			print("Downloading page : {}".format(count))
 			response = requests.get(URL)
 
 			try :

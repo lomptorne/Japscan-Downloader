@@ -4,3 +4,4 @@ inquirer
 pandas
 beautifulsoup4
 psutil
+tqdm
