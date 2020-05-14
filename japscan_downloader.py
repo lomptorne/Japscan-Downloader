@@ -164,7 +164,7 @@ class japscan_downloader:
 		page_nbr =len(self.urls_list) -1
 		
 		# Browsermob binaries location
-		browsermobproxy_location = "/home/lamptorne/Japscan_Downloader/browsermob/browsermob-proxy" 
+		browsermobproxy_location = "./browsermob/browsermob-proxy" 
 
 		# Start browsermob server
 		print("Proxy init...")
@@ -175,7 +175,7 @@ class japscan_downloader:
 		time.sleep(1)
 		
 		# Set option for the webdriver, automation detection from japscan, certificate, and headless 
-		chrome_path = "/home/lamptorne/Japscan_Downloader/chromedriver"
+		chrome_path = "./chromedriver"
 		chrome_options = webdriver.ChromeOptions()
 		chrome_options.add_experimental_option("useAutomationExtension", False)
 		chrome_options.add_experimental_option("excludeSwitches",["enable-automation"])
