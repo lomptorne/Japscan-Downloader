@@ -5,3 +5,4 @@ pandas
 beautifulsoup4
 psutil
 tqdm
+pyqt5
