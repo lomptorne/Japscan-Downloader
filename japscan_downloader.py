@@ -58,27 +58,19 @@ class japscan_downloader:
 			name = string.capwords(name)
 			name_results.append(name)
 			url_n[name] = '{}'.format(search_result)
-			
-		# If multiple result ask the user and set url and name
-		if len(name_results) > 1 :
 
-			questions = [
-			  				inquirer.List('result',
-			                message="Choose a result",
-			                choices= name_results,
-			            ),
-			]
-			answer = inquirer.prompt(questions)
-			self.manga_name = answer["result"]
-			end_url = url_n["{}".format(self.manga_name)]
-			end_url = end_url.replace("[", "").replace("]","").replace("'", "")
-	
-		# If one result build the url 
-		elif len(name_results) == 1 :
-			end_url = url_n["{}".format(name)]
-			end_url = end_url.replace("[", "").replace("]","").replace("'", "")
-			print("Manga found : {}".format(name))
-			
+		# Promt user to choose a manga
+		questions = [
+		  				inquirer.List('result',
+		                message="Choose a result",
+		                choices= name_results,
+		            ),
+		]
+		answer = inquirer.prompt(questions)
+		self.manga_name = answer["result"]
+		end_url = url_n["{}".format(self.manga_name)]
+		end_url = end_url.replace("[", "").replace("]","").replace("'", "")
+
 		# Add the manga to the url 
 		manga_url = base_url + end_url
 		
@@ -174,7 +166,7 @@ class japscan_downloader:
 		time.sleep(1)
 		proxy = server.create_proxy()
 		time.sleep(1)
-		
+
 		# Set option for the webdriver, automation detection from japscan, certificate, and headless 
 		chrome_path = "{}/chromedriver".format(path)
 		chrome_options = webdriver.ChromeOptions()
@@ -201,12 +193,11 @@ class japscan_downloader:
 				
 				# if the page number is even scrap only even page, since we can scrap the current page and the next page it's shorter
 				if page_nbr % 2 == 0 :
-
+					
 					for URL in tqdm(URLS[::2]) :
 						network_events = []
 						proxy.new_har("urls")
 						driver.get(URL)
-						time.sleep(1)
 						
 						# Get the page logs
 						entries = proxy.har['log']["entries"]
@@ -216,8 +207,8 @@ class japscan_downloader:
 						
 						# Extract only the imges 
 						matches = [s for s in network_events if ".jpg" in s and  "japscan.co" in s or ".png" in s and "japscan.co" in s]
-						matches = [ x for x in matches if "bg" not in x ]
-					
+						matches = [ x for x in matches if "bg." not in x ]
+						
 						# Add images Urls to a list
 						for match in matches :
 
@@ -225,12 +216,11 @@ class japscan_downloader:
 
 				# Same operation if page number is odd 
 				if page_nbr % 2 != 0 :
-
+						
 						for URL in tqdm(URLS[1::2]) :
 							network_events = []
 							proxy.new_har("urls")
 							driver.get(URL)
-							time.sleep(1)
 
 							entries = proxy.har['log']["entries"]
 							for entry in entries:
@@ -238,8 +228,7 @@ class japscan_downloader:
 							        network_events.append(entry['request']['url'])
 							
 							matches = [s for s in network_events if ".jpg" in s and  "japscan.co" in s or ".png" in s and "japscan.co" in s]
-							matches = [ x for x in matches if "bg" not in x ]
-							
+							matches = [ x for x in matches if "bg." not in x ]
 
 							for match in matches :
 
@@ -251,7 +240,10 @@ class japscan_downloader:
 				print("Timeout, retry" + str(ex))
 				driver.quit()
 				continue
-					
+
+		# Remove duplicate		
+		self.urls_down = list(dict.fromkeys(self.urls_down))
+
 		# Stop the server and the driver
 		server.stop()
 		driver.quit()
@@ -265,16 +257,14 @@ class japscan_downloader:
 		path = os.getcwd()
 		count = 0
 		dir_name = path + "/Mangas/" + self.manga_name + "/" + self.chapter_name
-
+		
 		# Create the folder 
-		if not os.path.exists(dir_name):
-			
-			try :
-				os.makedirs(dir_name)
-				os.chdir(dir_name)
-			except :
-				print("Folder already exist")
-				os.chdir(dir_name)
+		try :
+			os.makedirs(dir_name)
+			os.chdir(dir_name)
+		except :
+			print("Folder already exist")
+			os.chdir(dir_name)
 		print("Download :")
 
 		# Downloading all the fetched urls 		
@@ -284,12 +274,13 @@ class japscan_downloader:
 			response = requests.get(URL)
 
 			try :
+
 				file = open("{}.png".format(count), "wb")			
 				file.write(response.content)
 				file.close()
 			except : 
 				print("File already exist")
-
+		
 		os.chdir(path)
 
 		print("Done !")
