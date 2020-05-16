@@ -114,12 +114,14 @@ def urlMaker(url_manga, url_chapter) :
 	return urls_list
 
 def downloader(urls):
+	
 	# Set basic var for the function
 	urls_list = []
 	network_events = []
 	URLS=urls
 	page_nbr =len(urls) - 1
 	path = os.getcwd()
+
 	# Browsermob binaries location
 	browsermobproxy_location = "{}/browsermob/browsermob-proxy".format(path) 
 	

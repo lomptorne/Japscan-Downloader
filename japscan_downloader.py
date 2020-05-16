@@ -122,7 +122,7 @@ class Windows(QWidget):
 
 		# Set the windows 
 		self.setLayout(box_main)
-		self.setGeometry(1000, 500, 500, 400)
+		self.setGeometry(300, 300, 500, 400)
 		self.setWindowTitle('Japscan Downloader')
 		self.show()
 

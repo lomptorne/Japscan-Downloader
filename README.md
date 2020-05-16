@@ -16,9 +16,11 @@ Otherwise just launch the script
 
 **On windows :**
 
-    python japscan_downloader.py
+    python japscan_downloader_windows.py
 
 In order to fetch all the new manga published in japscan you could use the scrapper script.
+
+On windows, you should keep the terminal windows open, selenium requires it. 
 
 --------------
 Un simple script en python qui permet de téléecharger n'importe quel manga sur le site japscan.co
