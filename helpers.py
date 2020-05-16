@@ -62,6 +62,7 @@ def chapters(name_manga, url_manga) :
 	chap_returns = []
 	chap_results = []
 	chapters = {}
+
 	# Set the soup 
 	page = requests.get(url_short)
 	soup = BeautifulSoup(page.content, 'html.parser')
@@ -79,7 +80,7 @@ def chapters(name_manga, url_manga) :
 				chap_results.append(name)
 				chapters[name] = []
 				chapters[name].append(chap_return)
-		
+	# return a dict with chapter name : url of the chapter
 	return chapters
 
 def urlMaker(url_manga, url_chapter) :
@@ -88,6 +89,7 @@ def urlMaker(url_manga, url_chapter) :
 	url_semi = url_base + url_chapter
 	urls_list = []
 	
+	# Set the soup 
 	page = requests.get(url_semi)
 	soup = BeautifulSoup(page.content, "html.parser")
 
@@ -108,8 +110,9 @@ def urlMaker(url_manga, url_chapter) :
 
 		urls_list.append(str(url_semi + at_page + ".html"))
 	
-	# Return a list with all the chapter/volume urls
+	# Return a list with all the definitives urls
 	return urls_list
+
 def downloader(urls):
 	# Set basic var for the function
 	urls_list = []
@@ -247,11 +250,13 @@ def saver(urls_list, name_manga, name_chapter):
 	return print("Done !")
 
 def killer():
-
+	
+	# kill brosermob leftover prov
 	for proc in psutil.process_iter():
 		if proc.name() == "browsermob-proxy":
 			proc.kill()
-			
+
+	# kill java leftover proc
 	for proc in psutil.process_iter():
 		if proc.name() == "java":
 			proc.kill()

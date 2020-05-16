@@ -8,12 +8,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 from helpers import search, chapters, urlMaker, killer, downloader, saver
-from bs4 import *
-from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.common.exceptions import TimeoutException
-from browsermobproxy import Server
-from tqdm import tqdm
+
+# Set some signlas from the worker for later 
 class WorkerSignals(QObject):
 
     finished = pyqtSignal()
@@ -21,6 +17,7 @@ class WorkerSignals(QObject):
     result = pyqtSignal(object)
     progress = pyqtSignal(int)
 
+# Set the worker for multi-threading 
 class Worker(QRunnable):
 
     def __init__(self, fn, *args, **kwargs):
@@ -37,11 +34,7 @@ class Worker(QRunnable):
 
     @pyqtSlot()
     def run(self):
-        '''
-        Initialise the runner function with passed args, kwargs.
-        '''
-        
-        # Retrieve args/kwargs here; and fire processing using them
+         
         try:
             result = self.fn(*self.args, **self.kwargs)
         except:
@@ -49,11 +42,11 @@ class Worker(QRunnable):
             exctype, value = sys.exc_info()[:2]
             self.signals.error.emit((exctype, value, traceback.format_exc()))
         else:
-            self.signals.result.emit(result)  # Return the result of the processing
+            self.signals.result.emit(result)  
         finally:
-            self.signals.finished.emit()  # Done
+            self.signals.finished.emit()  
 
-# Init the main windows
+
 class Windows(QWidget):
 
 	def __init__(self):
@@ -61,17 +54,17 @@ class Windows(QWidget):
 		super().__init__()
 		self.initUI()
 
-
 	def initUI(self):
-		self.step = 0
+		
 		# Set the labels elements
 		label_input = QLabel()
 		label_manga = QLabel()
 		label_chapter = QLabel()
-		label_progress = QLabel()
+		self.label_progress = QLabel()
 		label_input.setText("Mangas Search :")
 		label_manga.setText("Mangas :")
 		label_chapter.setText("Chapters :")
+		self.label_progress.setText("Download : ")
 
 		# Set the buttons elements
 		self.btn_download = QPushButton("Download")
@@ -88,11 +81,12 @@ class Windows(QWidget):
 		# Set the progress bar
 		self.bar_progress = QProgressBar(self)
 		self.bar_progress.setGeometry(30, 40, 200, 25)
+		self.bar_progress.setAlignment(Qt.AlignCenter)
 
 		# Set the threadpool
 		self.threadpool = QThreadPool()
 		self.threadpool.setMaxThreadCount(1)
-
+		
 		# Set the list layouts
 		box_list_m = QHBoxLayout()
 		box_list_m.setAlignment(Qt.AlignCenter)
@@ -123,25 +117,24 @@ class Windows(QWidget):
 		box_main.addLayout(box_search_m)
 		box_main.addLayout(box_list_m)
 		box_main.addWidget(self.bar_progress)
+		box_main.addWidget(self.label_progress)
 		box_main.addLayout(box_button)
 
 		# Set the windows 
 		self.setLayout(box_main)
-		self.setGeometry(500, 300, 300, 200)
+		self.setGeometry(1000, 500, 500, 400)
 		self.setWindowTitle('Japscan Downloader')
 		self.show()
 
 		#Set the buttons and their action
 		btn_exit.clicked.connect(self.close)
 		self.btn_search.clicked.connect(self.function_search)
-		self.list_manga.itemClicked.connect(self.function_chapter)
-		self.list_chapter.itemClicked.connect(self.builder)
+		self.list_manga.itemActivated.connect(self.function_chapter)
+		self.list_chapter.clicked.connect(self.builder)
 		self.btn_download.clicked.connect(self.launcher)
 		self.btn_download.setEnabled(False)
 
-
-
-	# When convert button is clicked call the convert function
+	# Function searching mangas in the urls list and returning them to list element 
 	def function_search(self):
 
 		self.list_manga.clear()
@@ -155,58 +148,64 @@ class Windows(QWidget):
 		else:
 			self.list_manga.addItem("No Results")
 
+	# searching for the chapter of each manga with beuatifulsoup
 	def function_chapter(self):
 		
 		self.list_chapter.clear()
 		self.name_manga = self.list_manga.currentItem().text()
 		self.url_manga = self.search_results["{}".format(self.name_manga)][0]
 		self.request_chapters = chapters(self.name_manga, self.url_manga)
-		
-		for request_chapter in self.request_chapters :
-			self.list_chapter.addItem(request_chapter)
-		
+		list_tmp = [ values for values in self.request_chapters.keys() ]
+
+		for list_item in reversed(list_tmp) :
+			self.list_chapter.addItem(list_item)
+
+	# Building the complete urls list for the downloader 
 	def function_url(self, progress_callback):
-		
 		self.name_chapter = self.list_chapter.currentItem().text()
+		self.label_progress.setText("Download : {} {}".format(self.name_manga, self.name_chapter))
 		self.url_chapter = self.request_chapters["{}".format(self.name_chapter)][0]
 		self.urls = urlMaker(self.url_manga, self.url_chapter)
-		self.btn_download.setEnabled(True)	
-		
+		self.btn_download.setEnabled(True)
+
+	# fetching and downloading all the page with selenium browsermob and beautifulsoup
 	def function_downloader(self, progress_callback):
 
 		self.list_chapter.setEnabled(False)
 		self.list_manga.setEnabled(False)
 		self.btn_download.setEnabled(False)
 		self.btn_search.setEnabled(False)
-		
 		self.bar_progress.setRange(0,0)
+		self.label_progress.setText('Fetching... (It may take some time...)')
 
 		killer()
 		urls_list = downloader(self.urls)
 		killer()
 
+		self.label_progress.setText('Downloading...')
 		saver(urls_list, self.name_manga, self.name_chapter)
 
+		self.label_progress.setText(None)
 		self.bar_progress.setRange(0, 1)
-
 		self.btn_search.setEnabled(True)
-		self.btn_download.setEnabled(True)
 		self.list_chapter.setEnabled(True)
 		self.list_manga.setEnabled(True)
 
+	# Multithread caller for the url builder
 	def builder(self):
+		
 		worker = Worker(self.function_url)
-		
 		self.threadpool.start(worker)
-		
 
+	# Multi thread caller for the downloader
 	def launcher(self):
 		worker = Worker(self.function_downloader)
 		self.threadpool.start(worker) 
+		self.btn_download.setEnabled(False)
 
 if __name__ == '__main__':
 
     app = QApplication([])
     ex = Windows()
     sys.exit(app.exec_())
-
+    
