@@ -76,7 +76,7 @@ class Windows(QWidget):
 		label_input.setText("Mangas Search :")
 		label_manga.setText("Mangas :")
 		label_chapter.setText("Chapters :")
-		self.label_progress.setText("Download : ")
+		
 
 		# Set the buttons elements
 		self.btn_download = QPushButton("Download")
@@ -239,8 +239,6 @@ class Windows(QWidget):
 	def function_url(self, progress_callback):
 
 		self.name_chapter = self.list_chapter.currentItem().text()
-
-		self.label_progress.setText("Download : {} {}".format(self.name_manga, self.name_chapter))
 
 		url_chapter = self.chapters["{}".format(self.name_chapter)][0]
 
@@ -481,6 +479,9 @@ class Windows(QWidget):
 
 	# ProgressBar Events 
 	def function_progress(self, title, counter, length):
+
+		# Reset the bar label
+		self.label_progress.setText('')
 
 		# Change bar aspect depending on scraper progress
 		self.bar_progress.setRange(0, length)
