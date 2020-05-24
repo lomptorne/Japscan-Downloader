@@ -314,9 +314,9 @@ class Windows(QWidget):
 		while True:
 
 			try:
-				# Initiate the driver with low consumption website
+				# Set the timeout for the driver
 				driver.set_page_load_timeout(30)
-				driver.get('http://perdu.com/')
+				
 				
 				# if the page number is even scrap only even page, since we can scrap the current page and the next page it's shorter
 				if page_nbr % 2 == 0 :
@@ -405,7 +405,7 @@ class Windows(QWidget):
 
 			# Progressbar signal
 			bar_length = len(URLS)
-			progress_callback.emit("Fetching Urls ", counter_pages, bar_length)
+			progress_callback.emit("Downloading ", counter_pages, bar_length)
 			counter_pages += 1
 			response = requests.get(URL)
 
@@ -438,7 +438,7 @@ class Windows(QWidget):
 		self.btn_download.setEnabled(True)
 
 	# Multi thread caller for the downloader
-	def launcher(self, progress_callback):
+	def launcher(self):
 
 		# Set the workers
 		worker = Worker(self.function_downloader)
