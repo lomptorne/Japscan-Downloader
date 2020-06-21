@@ -83,7 +83,7 @@ class Windows(QWidget):
 		self.btn_download = QPushButton("Download")
 		btn_exit = QPushButton("Exit")
 		self.btn_search = QPushButton("Search")
-		self.btn_update = QPushButton("Update") 
+		self.btn_update = QPushButton("Update List") 
 
 		# Set the lists elements
 		self.list_manga = QListWidget()
@@ -148,6 +148,7 @@ class Windows(QWidget):
 		self.list_manga.clicked.connect(self.function_chapter)
 		self.list_chapter.clicked.connect(self.enabler)
 		self.btn_download.clicked.connect(self.launcher)
+		self.btn_update.clicked.connect(self.updater)
 		self.btn_download.setEnabled(False)
 
 	# Function searching mangas in the urls list and returning them to list element 
@@ -468,9 +469,68 @@ class Windows(QWidget):
 
 		self.btn_download.setEnabled(False)
 
+	# Launcher for the update function 
 	def updater(self):
-		worker = Worker(self.function_updater)
+
+		worker = Worker(self.function_update)
+		self.threadpool.start(worker)
+
+		# Set the signals 
+		worker.signals.start.connect(self.function_start)
+		worker.signals.progress.connect(self.function_progress)
+		worker.signals.result.connect(self.function_return)
+		worker.signals.finished.connect(self.function_end)
 	
+	def function_update(self, progress_callback):
+		# Set the basics variable for the scrapper
+		baseurls = []
+		url_loop = 0
+
+		# Loop through the manga index
+		while(True):
+			try :
+
+				# Loop incrementation 
+				if url_loop == 0:
+					URL = "https://www.japscan.co/mangas/1"
+				else:
+					URL = "https://www.japscan.co/mangas/{}".format(url_loop)
+
+				# Set the soup 
+				page = requests.get(URL)
+				soup = BeautifulSoup(page.content, 'html.parser')
+
+				# Set the breakpoint at the url redirection on end 
+				if page.status_code != 200:
+					break
+				elif page.url == "https://www.japscan.co/mangas/":
+					break
+
+				# Collect Urls from the correct element on the page 
+				for div in soup.find_all('div', attrs={'class': 'd-flex flex-wrap'}):
+
+					for a in div.find_all('a', href=True):
+						
+						# Add the urls to the list
+						baseurls.append(a['href'])
+
+						# Remove Duplicate from the URl list 
+						baseurls = list(set(baseurls))
+
+
+				# Progress
+				print("Page %d Scrapped." % (url_loop))
+				progress_callback.emit("", 0, 0)
+				#Increment the url
+				url_loop += 1
+
+			except :
+				break
+
+		# Convert the urls list into a csv file 
+		df = pd.DataFrame(baseurls)
+		df.to_csv('urls.csv', index=False)
+
 	# Event on the start of the main function
 	def function_start(self):
 
@@ -479,6 +539,7 @@ class Windows(QWidget):
 		self.list_manga.setEnabled(False)
 		self.btn_download.setEnabled(False)
 		self.btn_search.setEnabled(False)
+		self.btn_update.setEnabled(False)
 
 		# Set the progress bar to infinite
 		self.bar_progress.setRange(0,0)
@@ -509,6 +570,7 @@ class Windows(QWidget):
 		self.btn_search.setEnabled(True)
 		self.list_chapter.setEnabled(True)
 		self.list_manga.setEnabled(True)
+		self.btn_update.setEnabled(True)
 
 if __name__ == '__main__':
 
