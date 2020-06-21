@@ -1,6 +1,7 @@
 import sys
 import os
 import time 
+import csv
 import traceback
 import pandas as pd 
 import string
@@ -82,6 +83,7 @@ class Windows(QWidget):
 		self.btn_download = QPushButton("Download")
 		btn_exit = QPushButton("Exit")
 		self.btn_search = QPushButton("Search")
+		self.btn_update = QPushButton("Update") 
 
 		# Set the lists elements
 		self.list_manga = QListWidget()
@@ -122,7 +124,9 @@ class Windows(QWidget):
 		# Set the bottom buttons layout
 		box_button = QHBoxLayout()
 		box_button.addWidget(self.btn_download)
+		box_button.addWidget(self.btn_update)
 		box_button.addWidget(btn_exit)
+		
 
 		# Set the main windows box 
 		box_main = QVBoxLayout()
@@ -464,6 +468,9 @@ class Windows(QWidget):
 
 		self.btn_download.setEnabled(False)
 
+	def updater(self):
+		worker = Worker(self.function_updater)
+	
 	# Event on the start of the main function
 	def function_start(self):
 
