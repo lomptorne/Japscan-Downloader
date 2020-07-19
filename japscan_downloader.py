@@ -320,7 +320,7 @@ class Windows(QWidget):
 
 			try:
 				# Set the timeout for the driver
-				driver.set_page_load_timeout(30)
+				driver.set_page_load_timeout(80)
 				
 				
 				# if the page number is even scrap only even page, since we can scrap the current page and the next page it's shorter
