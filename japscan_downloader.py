@@ -559,7 +559,7 @@ class Windows(QWidget):
 
 	# return Value 
 	def function_return(self, output):
-
+		output = "Done !"
 		print(output)
 		
 	# Event on the end of the main function 
