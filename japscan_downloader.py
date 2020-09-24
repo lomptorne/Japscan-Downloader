@@ -211,7 +211,7 @@ class Windows(QWidget):
 		self.url_manga = self.mangas["{}".format(self.name_manga)][0]
 		#self.request_chapters = chapters(self.name_manga, self.url_manga)
 
-		url = "https://www.japscan.co" + self.url_manga
+		url = "https://www.japscan.se" + self.url_manga
 		chap_returns = []
 		chap_results = []
 		self.chapters = {}
@@ -247,7 +247,7 @@ class Windows(QWidget):
 
 		url_chapter = self.chapters["{}".format(self.name_chapter)][0]
 
-		url_semi = "https://www.japscan.co" + url_chapter
+		url_semi = "https://www.japscan.se" + url_chapter
 		self.urls_list = []
 		
 		# Set the soup 
@@ -344,7 +344,7 @@ class Windows(QWidget):
 						        network_events.append(entry['request']['url'])
 						
 						# Extract only the imges 
-						matches = [s for s in network_events if ".jpg" in s and  "japscan.co" in s or ".png" in s and "japscan.co" in s]
+						matches = [s for s in network_events if ".jpg" in s and  "japscan.se" in s or ".png" in s and "japscan.se" in s]
 						matches = [ x for x in matches if "bg." not in x ]
 						
 						# Add images Urls to a list
@@ -372,7 +372,7 @@ class Windows(QWidget):
 							    if 'request' in entry.keys():
 							        network_events.append(entry['request']['url'])
 							
-							matches = [s for s in network_events if ".jpg" in s and  "japscan.co" in s or ".png" in s and "japscan.co" in s]
+							matches = [s for s in network_events if ".jpg" in s and  "japscan.se" in s or ".png" in s and "japscan.se" in s]
 							matches = [ x for x in matches if "bg." not in x ]
 
 							for match in matches :
@@ -492,9 +492,9 @@ class Windows(QWidget):
 
 				# Loop incrementation 
 				if url_loop == 0:
-					URL = "https://www.japscan.co/mangas/1"
+					URL = "https://www.japscan.se/mangas/1"
 				else:
-					URL = "https://www.japscan.co/mangas/{}".format(url_loop)
+					URL = "https://www.japscan.se/mangas/{}".format(url_loop)
 
 				# Set the soup 
 				page = requests.get(URL)
@@ -503,7 +503,7 @@ class Windows(QWidget):
 				# Set the breakpoint at the url redirection on end 
 				if page.status_code != 200:
 					break
-				elif page.url == "https://www.japscan.co/mangas/":
+				elif page.url == "https://www.japscan.se/mangas/":
 					break
 
 				# Collect Urls from the correct element on the page 
